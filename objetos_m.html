@@ -40,6 +40,13 @@
 			.catch(error => { console.error('Error al obtener los objetos:', error); });
 	}
 
+	function Refresh() {
+		fetch('/cgi-bin/objetos.cgi?funcion=list&grupo=' + grupo, { credentials: "include" })
+			.then(response => response.json())
+			.then(data => UpdateObjetos(data.data))
+			.catch(error => { console.error('Error al obtener los objetos:', error); });
+	}
+
 	// Parses the xmlResponse from status.xml and updates the status box
 	function RenderObjetos(data) {
 		try {
@@ -91,17 +98,13 @@
 				output += '<div class="list-btn-group' + grupo + '" id="list-btn' + i + '" onClick="Touch(\'' + item['Objeto'] + '\');">\n';
 				output += '<img id="boton' + i + '" class="icon-image" src="../images/' + filename + '">&nbsp;' + item['Objeto'] + '\n';
 				output += '</div>\n';
+				i++;
 			});
 			document.getElementById('event-list').innerHTML = output;
 
 		} catch (e) { }
 
-		// Volver a pedir los datos, pero para actualizar el estado de los objetos
-		fetch('/cgi-bin/objetos.cgi?funcion=list&grupo=' + grupo, { credentials: "include" })
-			.then(response => response.json())
-			.then(data => UpdateObjetos(data.data))
-			.catch(error => { console.error('Error al obtener los objetos:', error); });
-
+		setInterval(function() {	Refresh(); }, 1000);
 	}
 
 	function UpdateObjetos(data) {
@@ -109,24 +112,24 @@
 			// actualizo el estado de los objetos
 			var i = 0;
 			var filename = '';
+			const rows = Array.isArray(data) ? data : [];			
 
-			if(!data) return;
-
-			for (i = 0; i < data.length; i++) {
-				if(data[i].Estado == 0)
+			rows.forEach(item => {
+				if(item['Estado'] == 0)
 				{
-					filename = data[i].Icono_Apagado;
+					filename = item['Icono_Apagado'];
 				}
-				else if(data[i].Estado == 1)
+				else if(item['Estado'] == 1)
 				{
-					filename = data[i].Icono_Encendido;
+					filename = item['Icono_Encendido'];
 				}
-				else if(data[i].Estado == 2)
+				else if(item['Estado'] == 2)
 				{
-					filename = data[i].Icono_Auto;
+					filename = item['Icono_Auto'];
 				}
 				document.getElementById('boton' + i).src = '../images/' + filename;
-			}
+				i++;
+			});
 		} catch (e) { }
 	}
 
