@@ -1,16 +1,15 @@
-<!DOCTYPE html>
-<html lang="es">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<title>MicroDOM Cloud</title>
+<title>SYSHOME MOBILE V 4.0</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="author" content="Walter Pirri" >
 <meta name="keywords" content="SMART HOME, SYSHOME, DOMOTIC, SECURITY SYSTEM, IOT">
 <meta name="description" content="Sistema integrado de monitoreo, alarma y domotica">
 <meta name="system-build" content="2023">
-<link href="css/movil.css" rel="stylesheet" type="text/css" />
-<script src="js/microdom.js" type="text/javascript"></script>
+<link href="../css/movil.css" rel="stylesheet" type="text/css" />
+<script src="../js/microdom.js" type="text/javascript"></script>
 </head>
+
 <body onload="OnLoad()">
 
 <div class="desktop-group" id="desktop">
@@ -23,122 +22,131 @@
 &nbsp;
 </div>
 
-<div class="list-back-btn" id="movil-return" onclick="window.location.replace('menu.html');">
+<div class="list-back-btn" id="movil-return" onclick="window.location.replace('index.html');">
 	<img id="back-icon" class="icon-image" src="../images/back.png">&nbsp;Volver
 </div>
 
 </div>
 
 <script type="text/javascript">
-	const params = new URLSearchParams(window.location.search);
-	const grupo = params.get('grupo');
+const params = new URLSearchParams(window.location.search);
+const grupo = params.get('grupo');
 
-	function OnLoad() {
-		fetch('/cgi-bin/objetos.cgi?funcion=list&grupo=' + grupo, { credentials: "include" })
-			.then(response => response.json())
-			.then(data => RenderObjetos(data.data))
-			.catch(error => { console.error('Error al obtener los objetos:', error); });
-	}
+// Parses the xmlResponse from status.xml and updates the status box
+function CreateList(msg) {
+    try {
+		// Armo el listado de objetos
+		var i = 0;
+		var output = '';
+		var filename = '';
+		
+		if(!msg) return;
+		// Cabecera
+		if(grupo == 2) { 
+		output += '<div class="list-head" id="list-head2" >\n';
+		output += '<img id="icon-image2" class="icon-image" src="../images/lamp1.png" >&nbsp;Luces\n';
+		output += '</div>\n';
+		} else if(grupo == 3) { 
+		output += '<div class="list-head"  id="list-head3" >\n';
+		output += '<img id="icon-image3" class="icon-image" src="../images/door1.png" >&nbsp;Puertas\n';
+		output += '</div>\n';
+		} else if(grupo == 4) { 
+		output += '<div class="list-head"  id="list-head4" >\n';
+		output += '<img id="icon-image4" class="icon-image" src="../images/calef1.png" >&nbsp;Clima\n';
+		output += '</div>\n';
+		} else if(grupo == 5) { 
+		output += '<div class="list-head"  id="list-head5" >\n';
+		output += '<img id="icon-image5" class="icon-image" src="../images/camara.png" >&nbsp;C&aacute;maras\n';
+		output += '</div>\n';
+		} else if(grupo == 6) { 
+		output += '<div class="list-head"  id="list-head6" >\n';
+		output += '<img id="icon-image6" class="icon-image" src="../images/gear.png" >&nbsp;Riego\n';
+		output += '</div>\n';
+		} 
+		document.getElementById('event-head').innerHTML = output;
+		
+		// listado
+		output = '';
+		for (i = 0; i < msg.length; i++) {
+		    if(msg[i].Estado == 0)
+		    {
+		        filename = msg[i].Icono_Apagado;
+		    }
+		    else if(msg[i].Estado == 1)
+		    {
+		        filename = msg[i].Icono_Encendido;
+		    }
+		    else if(msg[i].Estado == 2)
+		    {
+		        filename = msg[i].Icono_Auto;
+		    }
+		
+		    output += '<div class="list-btn-group' + grupo + '" id="list-btn' + i + '" onClick="ChangeStatus(\'' + msg[i].Objeto + '\');">\n';
+		    output += '<img id="img-boton' + i + '" class="icon-image" src="../images/' + filename + '">&nbsp;' + msg[i].Objeto + '\n';
+		    output += '</div>\n';
+		}    
+		document.getElementById('event-list').innerHTML = output;
 
-	function Refresh() {
-		fetch('/cgi-bin/objetos.cgi?funcion=list&grupo=' + grupo, { credentials: "include" })
-			.then(response => response.json())
-			.then(data => UpdateObjetos(data.data))
-			.catch(error => { console.error('Error al obtener los objetos:', error); });
-	}
+    } catch (e) { }
 
-	// Parses the xmlResponse from status.xml and updates the status box
-	function RenderObjetos(data) {
-		try {
-			// Armo el listado de objetos
-			var i = 0;
-			var output = '';
-			var filename = '';
-			const rows = Array.isArray(data) ? data : [];			
+	RefreshListData();
+}
 
-			// Cabecera
-			if(grupo == 2) {
-				output += '<div class="list-head" id="list-head2" >\n';
-				output += '<img id="icon-image2" class="icon-image" src="../images/lamp1.png" >&nbsp;Luces\n';
-				output += '</div>\n';
-			} else if(grupo == 3) {
-				output += '<div class="list-head"  id="list-head3" >\n';
-				output += '<img id="icon-image3" class="icon-image" src="../images/door1.png" >&nbsp;Puertas\n';
-				output += '</div>\n';
-			} else if(grupo == 4) {
-				output += '<div class="list-head"  id="list-head4" >\n';
-				output += '<img id="icon-image4" class="icon-image" src="../images/calef1.png" >&nbsp;Clima\n';
-				output += '</div>\n';
-			} else if(grupo == 5) {
-				output += '<div class="list-head"  id="list-head5" >\n';
-				output += '<img id="icon-image5" class="icon-image" src="../images/camara.png" >&nbsp;C&aacute;maras\n';
-				output += '</div>\n';
-			} else if(grupo == 6) {
-				output += '<div class="list-head"  id="list-head6" >\n';
-				output += '<img id="icon-image6" class="icon-image" src="../images/gear.png" >&nbsp;Riego\n';
-				output += '</div>\n';
-			}
-			document.getElementById('event-head').innerHTML = output;
-			
-			// listado
-			output = '';
-			rows.forEach(item => {
-				if(item['Estado'] == 0)
-				{
-					filename = item['Icono_Apagado'];
-				}
-				else if(item['Estado'] == 1)
-				{
-					filename = item['Icono_Encendido'];
-				}
-				else if(item['Estado'] == 2)
-				{
-					filename = item['Icono_Auto'];
-				}
-				output += '<div class="list-btn-group' + grupo + '" id="list-btn' + i + '" onClick="Touch(\'' + item['Objeto'] + '\');">\n';
-				output += '<img id="boton' + i + '" class="icon-image" src="../images/' + filename + '">&nbsp;' + item['Objeto'] + '\n';
-				output += '</div>\n';
-				i++;
-			});
-			document.getElementById('event-list').innerHTML = output;
+function UpdateList(msg) {
+    try {
+        // actualizo el estado de los objetos
+        var i = 0;
+        var filename = '';
 
-		} catch (e) { }
+        if(!msg) return;
 
-		setInterval(function() {	Refresh(); }, 1000);
-	}
+        for (i = 0; i < msg.length; i++) {
+            if(msg[i].Estado == 0)
+            {
+                filename = msg[i].Icono_Apagado;
+            }
+            else if(msg[i].Estado == 1)
+            {
+                filename = msg[i].Icono_Encendido;
+            }
+            else if(msg[i].Estado == 2)
+            {
+                filename = msg[i].Icono_Auto;
+            }
+            document.getElementById('img-boton' + i).src = '../images/' + filename;
+        }
+	} catch (e) { }
 
-	function UpdateObjetos(data) {
-		try {
-			// actualizo el estado de los objetos
-			var i = 0;
-			var filename = '';
-			const rows = Array.isArray(data) ? data : [];			
+}
 
-			rows.forEach(item => {
-				if(item['Estado'] == 0)
-				{
-					filename = item['Icono_Apagado'];
-				}
-				else if(item['Estado'] == 1)
-				{
-					filename = item['Icono_Encendido'];
-				}
-				else if(item['Estado'] == 2)
-				{
-					filename = item['Icono_Auto'];
-				}
-				document.getElementById('boton' + i).src = '../images/' + filename;
-				i++;
-			});
-		} catch (e) { }
-	}
+function OnLoad() {
+	fetch('/objetos?grupo=' + grupo) // Consulta
+	.then(response => response.json())
+	.then(data => CreateList(data.response))
+	.catch(error => {
+		document.getElementById("event-head").innerHTML =
+		"<p>Error al obtener datos: " + error + "</p>";
+	});
+}
 
-	function Touch(objeto) {
-		fetch('/cgi-bin/touch.cgi?objeto=' + objeto, { credentials: "include" })
-			.catch(error => {  });
-	}
+function RefreshListData() {
+	fetch('/objetos?grupo=' + grupo) // Consulta
+	.then(response => response.json())
+	.then(data => UpdateList(data.response))
+	.catch(error => {
+		document.getElementById("event-head").innerHTML =
+		"<p>Error al obtener datos: " + error + "</p>";
+	});
+
+	window.setTimeout("RefreshListData();", 1000); // Refrescar cada 1 segundo
+}
+
+function ChangeStatus(objeto) {
+	fetch('/touch?objeto=' + objeto);
+}
 
 </script>
 
 </body>
+
 </html>
